@@ -73,23 +73,23 @@ d3.json(earthdata).then(function(data) {
 
     function getColor(magnitude){
         if(magnitude > 5) {
-          return "#ea2c2c"
+          return "#ea2c2c";
         }
         if(magnitude > 4) {
-          return "#ea822c"
+          return "#ea822c";
         }
         if(magnitude > 3) {
-          return "#ea9c00"
+          return "#ea9c00";
         }
         if(magnitude > 2) {
-          return "#eecc00"
+          return "#eecc00";
         }
         if(magnitude > 1) {
-          return "#d4ee00"
+          return "#d4ee00";
         }
         if(magnitude > 0)
-          return "#98eee00"
-    };
+          return "#98ee00";
+    }
     // function determines the radius of the earthquake marker based on its magnitude 
     // Earthquake with a magnitude of 0 being plotted with wrong radius
     function getRadius(magnitude){
