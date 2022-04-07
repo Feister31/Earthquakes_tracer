@@ -29,7 +29,7 @@ attribution: 'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap
 let baseMaps = {
   "Street": streets,
   "Dark": dark,
-  "Light": light,
+  // "Light": light,
   "SatelliteStreet": satelliteStreets
 };
 
@@ -38,19 +38,20 @@ let map = L.map('map', {
   center: [42, -94.5],
   zoom: 4,
   layers: [streets]
-})
+});
 
 // // Pass our map layers into our layers control and add the layers control to the map.
 // L.control.layers(baseMaps).addTo(map);
 
 let allEarthquakes = new L.LayerGroup()
-let largeEarquakes = new L.LayerGroup()
+let marjorEarthquakes = new L.LayerGroup()
 let tectonicplates = new L.LayerGroup()
 
 let overLays = {
     TectonicPlates: tectonicplates,
-    Earthquakes: allEarthquakes
-}
+    Earthquakes: allEarthquakes,
+    MajorEarthquakes: marjorEarthquakes
+};
 L.control.layers(baseMaps,overLays).addTo(map);
 
 // Retrieve the earthquakes
@@ -68,7 +69,7 @@ d3.json(earthdata).then(function(data) {
         radius: getRadius(feature.properties.mag),
         stroke: true,
         weight: 0.5
-      }
+      };
     };
 
     function getColor(magnitude){
@@ -91,7 +92,6 @@ d3.json(earthdata).then(function(data) {
           return "#98ee00";
     }
     // function determines the radius of the earthquake marker based on its magnitude 
-    // Earthquake with a magnitude of 0 being plotted with wrong radius
     function getRadius(magnitude){
       if(magnitude === 0) {
         return 1;
@@ -109,47 +109,132 @@ d3.json(earthdata).then(function(data) {
       onEachFeature: function(feature, layer) {
         layer.bindPopup("Magnitude: " + feature.properties.mag + "<br>Location: " + feature.properties.place);
       }
-    }).addTo(allEarthquakes)
+    }).addTo(allEarthquakes);
 
-    allEarthquakes.addTo(map)
+    allEarthquakes.addTo(map);
 
-    let legend =L.control({
-      position: "bottomright"
-    }); 
-    legend.onAdd = function(){
-      let div = L.DomUtil.create("div", "info legend");
+    // let legend =L.control({
+    //   position: "bottomright"
+    // }); 
+    // legend.onAdd = function(){
+    //   let div = L.DomUtil.create("div", "info legend");
       
-      const magnitudes = [0,1,2,3,4,5];
-      const colors = [
-        "#98eee0",
-        "#d4ee00",
-        "#eecc00",
-        "#ea9c00",
-        "#ea822c",
-        "#ea2c2c"
-      ];
-      for (var i = 0; i < magnitudes.length; i++) {
-      console.log(colors[i]);
-      div.innerHTML +=
-        "<i style='background: " + colors[i] + "'></i> " +
-        magnitudes[i] + (magnitudes[i + 1] ? "&ndash;" + magnitudes[i + 1] + "<br>" : "+");
+    //   const magnitudes = [0,1,2,3,4,5];
+    //   const colors = [
+    //     "#98eee0",
+    //     "#d4ee00",
+    //     "#eecc00",
+    //     "#ea9c00",
+    //     "#ea822c",
+    //     "#ea2c2c"
+    //   ];
+    //   for (var i = 0; i < magnitudes.length; i++) {
+    //   console.log(colors[i]);
+    //   div.innerHTML +=
+    //     "<i style='background: " + colors[i] + "'></i> " +
+    //     magnitudes[i] + (magnitudes[i + 1] ? "&ndash;" + magnitudes[i + 1] + "<br>" : "+");
+    //   }
+    //   return div;
+
+    // };
+//     legend.addTo(map);
+//     let tecno = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json"
+//     d3.json(tecno).then(function(plateData){
+//       L.geoJson(plateData, {
+//         color: "#ff6500",
+//         weight: 2
+//       }).addTo(tectonicplates)
+//     })
+
+//     tectonicplates.addTo(map)
+
+// })
+let majorEarthData = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson";
+d3.json(majorEarthData).then(function(data) {
+  // function return style for each earthquake we plot on the map 
+  
+  function bigquakes(feature){
+    return {
+      opacity: 1,
+      fillOpacity: 1,
+      fillColor: getColor(feature.properties.mag),
+      color: "#000000",
+      radius: getRadius(feature.properties.mag),
+      stroke: true,
+      weight: 0.5
+    }
+  };
+
+  function getColor(magnitude){
+      if(magnitude > 6) {
+        return "#ea2c2c";
       }
-      return div;
+      if(magnitude > 5) {
+        return "#ea822c";
+      }
+        return "#ea9c00";}
+        
+  function getRadius(magnitude){
+      if(magnitude === 0) {
+        return 1;
+          }
+        return magnitude * 4;
+    
+        }
+// d3.json(majorEarthData).then(function(qData){
+//   L.geoJson(qData, {
+//     weight: 2
+//   }).addTo(marjorEarthquakes)
+// })
+L.geoJson(data, {
+  pointToLayer: function(feature, latlng) {
+        console.log(data);
+        return L.circleMarker(latlng)
+  },
+  style: styleInfo,
+  onEachFeature: function(feature, layer) {
+    layer.bindPopup("Magnitude: " + feature.properties.mag + "<br>Location: " + feature.properties.place);
+  }
+}).addTo(marjorEarthquakes);
 
-    };
-    legend.addTo(map);
-    let tecno = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json"
-    d3.json(tecno).then(function(plateData){
-      L.geoJson(plateData, {
-        color: "#ff6500",
-        weight: 2
-      }).addTo(tectonicplates)
-    })
+marjorEarthquakes.addTo(map);
+});
+let legend =L.control({
+  position: "bottomright"
+}); 
+legend.onAdd = function(){
+  let div = L.DomUtil.create("div", "info legend");
+  
+  const magnitudes = [0,1,2,3,4,5];
+  const colors = [
+    "#98eee0",
+    "#d4ee00",
+    "#eecc00",
+    "#ea9c00",
+    "#ea822c",
+    "#ea2c2c"
+  ];
+  for (var i = 0; i < magnitudes.length; i++) {
+  console.log(colors[i]);
+  div.innerHTML +=
+    "<i style='background: " + colors[i] + "'></i> " +
+    magnitudes[i] + (magnitudes[i + 1] ? "&ndash;" + magnitudes[i + 1] + "<br>" : "+");
+  }
+  return div;
 
-    tectonicplates.addTo(map)
-
+};
+legend.addTo(map);
+let tecno = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json"
+d3.json(tecno).then(function(plateData){
+  L.geoJson(plateData, {
+    color: "#ff6500",
+    weight: 2
+  }).addTo(tectonicplates)
 })
 
+tectonicplates.addTo(map)
+
+});
 // Creating a GeoJSON layer with the retrieved data.
 
 
